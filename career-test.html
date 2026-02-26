@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Career Compass — Find Your Path</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0e0e10;
+    --card: #18181c;
+    --border: #2a2a32;
+    --accent: #e8c97a;
+    --accent2: #7ab8e8;
+    --text: #f0ede8;
+    --muted: #888899;
+    --progress-h: 4px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  /* Grain overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.4;
+  }
+
+  .wrap {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    max-width: 760px;
+    padding: 40px 24px 80px;
+  }
+
+  /* HEADER */
+  .header {
+    text-align: center;
+    margin-bottom: 48px;
+    animation: fadeUp 0.8s ease both;
+  }
+  .header .eyebrow {
+    font-size: 11px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 16px;
+  }
+  .header h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(36px, 6vw, 64px);
+    font-weight: 900;
+    line-height: 1.05;
+    margin-bottom: 16px;
+  }
+  .header h1 span { color: var(--accent); }
+  .header p {
+    color: var(--muted);
+    font-size: 15px;
+    max-width: 480px;
+    margin: 0 auto;
+    line-height: 1.6;
+  }
+
+  /* PROGRESS */
+  .progress-bar-wrap {
+    background: var(--border);
+    border-radius: 99px;
+    height: var(--progress-h);
+    margin-bottom: 40px;
+    overflow: hidden;
+  }
+  .progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    border-radius: 99px;
+    transition: width 0.4s cubic-bezier(.4,0,.2,1);
+  }
+  .progress-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+
+  /* QUESTION CARD */
+  .question-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 40px;
+    animation: fadeUp 0.5s ease both;
+  }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(18px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .category-tag {
+    display: inline-block;
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--accent2);
+    border: 1px solid var(--accent2);
+    padding: 4px 10px;
+    border-radius: 99px;
+    margin-bottom: 20px;
+    opacity: 0.8;
+  }
+  .question-num {
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+  .question-text {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(18px, 3vw, 24px);
+    line-height: 1.4;
+    margin-bottom: 32px;
+  }
+
+  /* OPTIONS */
+  .options { display: flex; flex-direction: column; gap: 12px; }
+  .option {
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px 20px;
+    cursor: pointer;
+    text-align: left;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .option:hover {
+    border-color: var(--accent);
+    background: rgba(232,201,122,0.06);
+    transform: translateX(4px);
+  }
+  .option.selected {
+    border-color: var(--accent);
+    background: rgba(232,201,122,0.12);
+  }
+  .option-letter {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 500;
+    flex-shrink: 0;
+    transition: all 0.2s;
+    color: var(--muted);
+  }
+  .option.selected .option-letter {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #000;
+  }
+
+  /* SCALE (for scale questions) */
+  .scale-wrap { display: flex; flex-direction: column; gap: 12px; }
+  .scale-labels { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); }
+  .scale-buttons { display: flex; gap: 8px; }
+  .scale-btn {
+    flex: 1;
+    height: 44px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .scale-btn:hover { border-color: var(--accent); background: rgba(232,201,122,0.06); }
+  .scale-btn.selected { background: var(--accent); border-color: var(--accent); color: #000; font-weight: 600; }
+
+  /* NAV */
+  .nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 32px;
+  }
+  .btn {
+    padding: 12px 28px;
+    border-radius: 99px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: none;
+  }
+  .btn-ghost {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+  }
+  .btn-ghost:hover { border-color: var(--text); color: var(--text); }
+  .btn-primary {
+    background: var(--accent);
+    color: #000;
+  }
+  .btn-primary:hover { background: #f0d98e; transform: translateY(-1px); }
+  .btn-primary:disabled { opacity: 0.3; cursor: not-allowed; transform: none; }
+
+  /* RESULTS */
+  #results { display: none; animation: fadeUp 0.8s ease both; }
+  .results-header {
+    text-align: center;
+    margin-bottom: 48px;
+  }
+  .results-header h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(28px, 5vw, 48px);
+    margin-bottom: 12px;
+  }
+  .results-header p { color: var(--muted); font-size: 15px; max-width: 500px; margin: 0 auto; }
+
+  .career-grid { display: flex; flex-direction: column; gap: 20px; margin-bottom: 40px; }
+  .career-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 32px;
+    position: relative;
+    overflow: hidden;
+  }
+  .career-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 4px;
+    height: 100%;
+    border-radius: 4px 0 0 4px;
+  }
+  .career-card:nth-child(1)::before { background: var(--accent); }
+  .career-card:nth-child(2)::before { background: var(--accent2); }
+  .career-card:nth-child(3)::before { background: #e87ab8; }
+  .career-card:nth-child(4)::before { background: #7ae8a0; }
+  .career-card:nth-child(5)::before { background: #e8a07a; }
+
+  .career-rank {
+    font-size: 11px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+  .career-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px;
+    margin-bottom: 4px;
+  }
+  .career-score-bar {
+    height: 3px;
+    background: var(--border);
+    border-radius: 99px;
+    margin: 16px 0;
+    overflow: hidden;
+  }
+  .career-score-fill {
+    height: 100%;
+    border-radius: 99px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    transition: width 1s cubic-bezier(.4,0,.2,1) 0.3s;
+  }
+  .career-desc { color: var(--muted); font-size: 14px; line-height: 1.6; margin-bottom: 16px; }
+  .career-tags { display: flex; flex-wrap: wrap; gap: 8px; }
+  .career-tag {
+    font-size: 11px;
+    padding: 4px 10px;
+    border-radius: 99px;
+    border: 1px solid var(--border);
+    color: var(--muted);
+  }
+
+  .profile-section {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 32px;
+    margin-bottom: 20px;
+  }
+  .profile-section h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 18px;
+    margin-bottom: 20px;
+  }
+  .trait-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 14px;
+  }
+  .trait-name { font-size: 13px; color: var(--muted); width: 140px; flex-shrink: 0; }
+  .trait-bar-bg { flex: 1; height: 6px; background: var(--border); border-radius: 99px; overflow: hidden; }
+  .trait-bar-fill { height: 100%; border-radius: 99px; transition: width 1s cubic-bezier(.4,0,.2,1); }
+  .trait-val { font-size: 12px; color: var(--muted); width: 36px; text-align: right; }
+
+  .restart-btn {
+    display: block;
+    width: 100%;
+    padding: 16px;
+    text-align: center;
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    color: var(--muted);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .restart-btn:hover { border-color: var(--text); color: var(--text); }
+
+  @media (max-width: 560px) {
+    .question-card { padding: 24px; }
+    .scale-buttons { gap: 5px; }
+    .scale-btn { height: 40px; font-size: 12px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- INTRO / TEST -->
+  <div id="test-section">
+    <div class="header">
+      <div class="eyebrow">Career Discovery</div>
+      <h1>Find Your<br><span>True Calling</span></h1>
+      <p>100 questions across 10 dimensions. Answer honestly — there are no right answers, only yours.</p>
+    </div>
+
+    <div class="progress-label">
+      <span id="q-counter">Question 1 of 100</span>
+      <span id="q-percent">0%</span>
+    </div>
+    <div class="progress-bar-wrap">
+      <div class="progress-bar" id="progress-bar" style="width:1%"></div>
+    </div>
+
+    <div class="question-card" id="question-card">
+      <div class="category-tag" id="cat-tag"></div>
+      <div class="question-num" id="q-num"></div>
+      <div class="question-text" id="q-text"></div>
+      <div id="answer-area"></div>
+    </div>
+
+    <div class="nav">
+      <button class="btn btn-ghost" id="btn-back" onclick="goBack()">← Back</button>
+      <button class="btn btn-primary" id="btn-next" onclick="goNext()" disabled>Continue →</button>
+    </div>
+  </div>
+
+  <!-- RESULTS -->
+  <div id="results">
+    <div class="results-header">
+      <div class="eyebrow">Your Results</div>
+      <h2>Your Career <span style="color:var(--accent)">Profile</span></h2>
+      <p>Based on your answers, here are your top career matches and personality dimensions.</p>
+    </div>
+    <div id="profile-traits"></div>
+    <h3 style="font-family:'Playfair Display',serif;font-size:20px;margin-bottom:20px;">Top Career Matches</h3>
+    <div class="career-grid" id="career-grid"></div>
+    <button class="restart-btn" onclick="restart()">↺ Take the test again</button>
+  </div>
+</div>
+
+<script>
+const questions = [
+  // SALARY & MONEY (1-10)
+  {cat:"💰 Money & Salary", text:"How important is having a high salary to you, above all other job factors?", type:"scale", lo:"Not important", hi:"Extremely important", dim:"salary"},
+  {cat:"💰 Money & Salary", text:"Would you take a 30% pay cut to do work you find deeply meaningful?", type:"options", opts:["Absolutely, meaning matters most","Probably yes, if I still covered my needs","Maybe, I'd have to think hard","Unlikely, financial security comes first","No way — I need to earn well"], dim:"meaning_vs_money"},
+  {cat:"💰 Money & Salary", text:"How much does financial stress affect your mood and performance?", type:"scale", lo:"Barely at all", hi:"Enormously", dim:"financial_stress"},
+  {cat:"💰 Money & Salary", text:"Which income model appeals most to you?", type:"options", opts:["Stable salary with predictable raises","Performance bonuses and commissions","Equity / ownership in something I build","Freelance / project-based pay","Multiple income streams"], dim:"income_model"},
+  {cat:"💰 Money & Salary", text:"At what annual income would you feel genuinely comfortable?", type:"options", opts:["Under $50k — enough to live simply","$50k–$80k — solid middle ground","$80k–$120k — comfortable professional life","$120k–$200k — strong financial freedom","$200k+ — I want wealth"], dim:"salary_target"},
+  {cat:"💰 Money & Salary", text:"How comfortable are you with income uncertainty in exchange for higher upside?", type:"scale", lo:"Very uncomfortable", hi:"Totally fine with it", dim:"risk_tolerance"},
+  {cat:"💰 Money & Salary", text:"Do you want your work to provide financial independence / early retirement potential?", type:"scale", lo:"Not a priority", hi:"Critical goal", dim:"financial_independence"},
+  {cat:"💰 Money & Salary", text:"Would you start a business even if there was real risk of financial loss?", type:"options", opts:["Yes — I'd embrace the risk","Yes, with a safety net in place","Maybe, if the idea was compelling enough","Probably not — I value stability","No — not worth the risk to me"], dim:"entrepreneurship"},
+  {cat:"💰 Money & Salary", text:"How do you feel about negotiating salary and contracts?", type:"options", opts:["I love it — it's a game I enjoy","I'm okay with it, even if it's uncomfortable","I do it but dislike it","I struggle with it and avoid it","I hate it completely"], dim:"negotiation"},
+  {cat:"💰 Money & Salary", text:"How much does your career choice need to signal status or success to others?", type:"scale", lo:"Not at all", hi:"Very much so", dim:"status"},
+
+  // WORK-LIFE BALANCE (11-20)
+  {cat:"⚖️ Work-Life Balance", text:"How strictly do you want to protect your evenings and weekends from work?", type:"scale", lo:"Very flexible", hi:"Total protection", dim:"wlb"},
+  {cat:"⚖️ Work-Life Balance", text:"Which best describes your ideal work schedule?", type:"options", opts:["Standard 9-5, predictable hours","Flexible hours, just get the work done","4-day work week","I'd work long hours for the right opportunity","Variable — I like seasons of intensity and rest"], dim:"schedule"},
+  {cat:"⚖️ Work-Life Balance", text:"How much does your current work-life balance affect your overall wellbeing?", type:"scale", lo:"Barely at all", hi:"Hugely", dim:"wlb_impact"},
+  {cat:"⚖️ Work-Life Balance", text:"Would you accept a demanding role (60+ hrs/week) for a few years to accelerate your career?", type:"options", opts:["Yes, happily","Yes, for a defined window","Maybe once in my life","Probably not","No — not worth it"], dim:"hustle"},
+  {cat:"⚖️ Work-Life Balance", text:"How important is location flexibility (remote, hybrid, ability to travel) in your ideal career?", type:"scale", lo:"Not important", hi:"Essential", dim:"location_flex"},
+  {cat:"⚖️ Work-Life Balance", text:"Do you have significant personal commitments (family, caregiving, hobbies) that require schedule flexibility?", type:"options", opts:["Yes, a lot","Yes, somewhat","A little","Not really","No, I'm very free"], dim:"personal_commitments"},
+  {cat:"⚖️ Work-Life Balance", text:"How do you recharge best?", type:"options", opts:["Completely disconnecting from work","Light engagement — staying slightly in the loop","I actually enjoy working during downtime","Physical activity / being outdoors","Deep social time with others"], dim:"recharge"},
+  {cat:"⚖️ Work-Life Balance", text:"When you're off work, how easy do you find it to mentally detach?", type:"scale", lo:"Very difficult", hi:"Effortlessly", dim:"detachment"},
+  {cat:"⚖️ Work-Life Balance", text:"How much vacation time matters to you?", type:"scale", lo:"Barely at all", hi:"It's a dealbreaker", dim:"vacation"},
+  {cat:"⚖️ Work-Life Balance", text:"Would you relocate for the right career opportunity?", type:"options", opts:["Yes, anywhere in the world","Yes, within my country","Maybe, for the right role","Reluctantly if needed","No — my location is non-negotiable"], dim:"relocation"},
+
+  // IMPACT & PURPOSE (21-30)
+  {cat:"🌍 Impact & Purpose", text:"How important is it that your work makes a positive difference in the world?", type:"scale", lo:"Not important", hi:"Everything", dim:"impact"},
+  {cat:"🌍 Impact & Purpose", text:"Which type of impact matters most to you?", type:"options", opts:["Helping individuals directly (1-to-1)","Improving systems / communities","Scientific or intellectual progress","Environmental / planetary impact","Economic growth and innovation","Creating beauty, culture, or art"], dim:"impact_type"},
+  {cat:"🌍 Impact & Purpose", text:"Could you happily work for a company whose purpose you find neutral or unclear?", type:"options", opts:["Yes, work is work","Probably, if other things were great","I'd feel some friction but manage","I'd struggle with it","No — purpose is essential"], dim:"purpose_need"},
+  {cat:"🌍 Impact & Purpose", text:"How motivated are you by legacy — leaving something behind after your career?", type:"scale", lo:"Not motivated at all", hi:"Deeply motivated", dim:"legacy"},
+  {cat:"🌍 Impact & Purpose", text:"Would you work in a nonprofit or mission-driven org even at lower pay?", type:"options", opts:["Yes, very happily","Yes, to a point","Maybe for a season","Unlikely","No — I need market-rate pay"], dim:"nonprofit"},
+  {cat:"🌍 Impact & Purpose", text:"How important is it that the people you help are directly visible to you?", type:"scale", lo:"Not important", hi:"Very important", dim:"direct_impact"},
+  {cat:"🌍 Impact & Purpose", text:"Do you care about shaping policy, systems, or society at a large scale?", type:"scale", lo:"Not at all", hi:"It drives me", dim:"systemic_impact"},
+  {cat:"🌍 Impact & Purpose", text:"Which sounds more fulfilling to you?", type:"options", opts:["Building something entirely new","Improving something that already exists","Teaching and multiplying your impact through others","Protecting or preserving what matters","Solving complex unsolved problems"], dim:"work_mode"},
+  {cat:"🌍 Impact & Purpose", text:"How much do your personal values need to align with your employer's values?", type:"scale", lo:"Not at all", hi:"Complete alignment needed", dim:"values_alignment"},
+  {cat:"🌍 Impact & Purpose", text:"Would you feel unfulfilled if your work had no clear social good?", type:"scale", lo:"No, I'd be fine", hi:"Yes, deeply unfulfilled", dim:"social_need"},
+
+  // TYPE OF WORK (31-42)
+  {cat:"🔧 Type of Work", text:"Do you prefer working with your hands, physical tools, or technology hardware?", type:"scale", lo:"Not at all", hi:"Love it", dim:"hands_on"},
+  {cat:"🔧 Type of Work", text:"How much do you enjoy abstract, conceptual thinking versus concrete, tangible tasks?", type:"scale", lo:"Prefer concrete", hi:"Prefer abstract", dim:"abstract_thinking"},
+  {cat:"🔧 Type of Work", text:"Which type of problem excites you most?", type:"options", opts:["Technical/engineering problems","Human/social/emotional problems","Business/strategic problems","Creative/aesthetic problems","Scientific/research problems","Legal/ethical/policy problems"], dim:"problem_type"},
+  {cat:"🔧 Type of Work", text:"How much do you enjoy writing as part of your job?", type:"scale", lo:"Hate it", hi:"Love it", dim:"writing"},
+  {cat:"🔧 Type of Work", text:"How much do you enjoy public speaking and presenting?", type:"scale", lo:"Strongly dislike", hi:"Really enjoy it", dim:"presenting"},
+  {cat:"🔧 Type of Work", text:"Do you prefer variety in your daily tasks or deep focus on one thing for long stretches?", type:"options", opts:["Lots of variety — I get bored easily","Mostly variety with some recurring focus","Mix of both","Mostly focus with some variety","Deep sustained focus — I love flow state"], dim:"variety_vs_focus"},
+  {cat:"🔧 Type of Work", text:"How creative do you need your work to be?", type:"scale", lo:"Not at all", hi:"Must be highly creative", dim:"creativity"},
+  {cat:"🔧 Type of Work", text:"How much do you enjoy analysis and working with data?", type:"scale", lo:"Dislike it", hi:"Love it", dim:"analytical"},
+  {cat:"🔧 Type of Work", text:"Do you prefer making things (products, art, code, content) or shaping ideas and strategy?", type:"options", opts:["Making things — I'm a builder","Mostly making with some strategy","Equal parts both","Mostly strategy with some making","Pure strategy and vision"], dim:"maker_vs_strategist"},
+  {cat:"🔧 Type of Work", text:"How do you feel about repetitive, process-driven work?", type:"options", opts:["I actually like the rhythm of it","Fine in moderation","Neutral","I find it draining","I'd go crazy"], dim:"repetition"},
+  {cat:"🔧 Type of Work", text:"How much do you want to use technology in your day-to-day work?", type:"scale", lo:"Prefer to avoid it", hi:"The more the better", dim:"tech_use"},
+  {cat:"🔧 Type of Work", text:"How skilled do you consider yourself at organizing, planning, and executing complex projects?", type:"scale", lo:"Not very skilled", hi:"Very skilled", dim:"project_mgmt"},
+
+  // PEOPLE & SOCIAL (43-54)
+  {cat:"🤝 People & Social", text:"How much of your energy comes from interacting with other people?", type:"scale", lo:"Drained by it", hi:"Energized by it", dim:"extraversion"},
+  {cat:"🤝 People & Social", text:"What is your ideal social dynamic at work?", type:"options", opts:["Mostly solo with occasional collaboration","Small tight-knit team","Large diverse team","Constant client/customer interaction","Teaching or coaching others","Leadership — guiding and developing people"], dim:"social_dynamic"},
+  {cat:"🤝 People & Social", text:"How much do you enjoy selling, persuading, or pitching ideas to others?", type:"scale", lo:"Strongly dislike", hi:"Love it", dim:"selling"},
+  {cat:"🤝 People & Social", text:"How comfortable are you with conflict and difficult conversations?", type:"scale", lo:"Very uncomfortable", hi:"Completely comfortable", dim:"conflict"},
+  {cat:"🤝 People & Social", text:"Do you want to manage and develop other people in your career?", type:"options", opts:["Yes — leadership is my goal","Yes, eventually","Maybe, I'm open to it","I'd rather stay individual contributor","No — I prefer to work alone"], dim:"leadership_desire"},
+  {cat:"🤝 People & Social", text:"How important is having a strong sense of community and belonging at work?", type:"scale", lo:"Not important", hi:"Very important", dim:"community"},
+  {cat:"🤝 People & Social", text:"Do you enjoy mentoring or teaching others?", type:"scale", lo:"Not at all", hi:"It's my favorite thing", dim:"mentoring"},
+  {cat:"🤝 People & Social", text:"How much empathy and emotional attunement do you apply in your work interactions?", type:"scale", lo:"I focus on task, less on emotion", hi:"Deep emotional attunement drives my work", dim:"empathy"},
+  {cat:"🤝 People & Social", text:"How do you feel about networking and building professional relationships?", type:"options", opts:["Love it — it's energizing","I'm good at it even if it takes effort","Neutral — do it when needed","I find it draining but do it","I dislike it and avoid it"], dim:"networking"},
+  {cat:"🤝 People & Social", text:"How important are your coworkers' personalities and culture to your job satisfaction?", type:"scale", lo:"Not very important", hi:"Make or break", dim:"culture_fit"},
+  {cat:"🤝 People & Social", text:"Would you enjoy helping people through emotionally difficult situations in your work?", type:"scale", lo:"No — I'd find this draining", hi:"Yes — this is deeply rewarding", dim:"emotional_labor"},
+  {cat:"🤝 People & Social", text:"Are you comfortable in front of cameras, large audiences, or in the public eye?", type:"scale", lo:"Very uncomfortable", hi:"I thrive in it", dim:"public_presence"},
+
+  // INDUSTRY PREFERENCES (55-62)
+  {cat:"🏭 Industry", text:"Which sector appeals to you most?", type:"options", opts:["Technology / Software","Healthcare / Life Sciences","Creative / Media / Entertainment","Finance / Business","Education","Government / Nonprofit / Social Services","Science / Research","Trades / Built Environment"], dim:"sector"},
+  {cat:"🏭 Industry", text:"How important is working in an industry that's growing rapidly?", type:"scale", lo:"Not important", hi:"Very important", dim:"growth_industry"},
+  {cat:"🏭 Industry", text:"Would you work in a controversial industry (defense, pharma, fossil fuels, etc.) for better pay or career growth?", type:"options", opts:["Yes, without hesitation","Maybe, depends on the role","I'd struggle with it morally","Probably not","Never"], dim:"industry_ethics"},
+  {cat:"🏭 Industry", text:"How important is it that your industry is intellectually stimulating and on the cutting edge?", type:"scale", lo:"Not important", hi:"Essential", dim:"intellectual_industry"},
+  {cat:"🏭 Industry", text:"Do you prefer industries with clear professional paths and credentials, or those that are more fluid?", type:"options", opts:["Clear credentials and defined paths","Some structure but flexible","Fluid and meritocratic","I prefer to forge my own path","Doesn't matter to me"], dim:"career_path_structure"},
+  {cat:"🏭 Industry", text:"How attracted are you to the startup / tech startup world?", type:"scale", lo:"Not at all", hi:"Very attracted", dim:"startup_attraction"},
+  {cat:"🏭 Industry", text:"Would you consider a career in the arts, music, film, design, or other creative industries?", type:"scale", lo:"Not at all", hi:"Absolutely", dim:"creative_industry"},
+  {cat:"🏭 Industry", text:"How important is job security and industry stability to you?", type:"scale", lo:"Not important", hi:"Very important", dim:"job_security"},
+
+  // PERSONALITY & STRENGTHS (63-74)
+  {cat:"🧠 Personality", text:"How would you rate your own analytical and logical reasoning?", type:"scale", lo:"Not a strength", hi:"Major strength", dim:"self_analytical"},
+  {cat:"🧠 Personality", text:"How would you rate your creativity and ability to generate original ideas?", type:"scale", lo:"Not a strength", hi:"Major strength", dim:"self_creative"},
+  {cat:"🧠 Personality", text:"Are you more drawn to precision and detail, or the big picture?", type:"options", opts:["Details and precision — I catch everything","Mostly detail-oriented","Balanced — I can do both","Mostly big picture","Big picture and vision — details bore me"], dim:"detail_vs_bigpic"},
+  {cat:"🧠 Personality", text:"How would you describe your working style under pressure?", type:"options", opts:["I thrive — pressure unlocks my best","I'm solid but prefer not to be rushed","I do okay with manageable pressure","I struggle — it affects my quality","I avoid high-pressure environments"], dim:"pressure"},
+  {cat:"🧠 Personality", text:"How persistent are you when facing setbacks and failure?", type:"scale", lo:"I give up relatively easily", hi:"Extremely persistent", dim:"resilience"},
+  {cat:"🧠 Personality", text:"How self-directed and self-motivated are you without external accountability?", type:"scale", lo:"I need structure and oversight","hi":"I'm entirely self-driven", dim:"self_directed"},
+  {cat:"🧠 Personality", text:"How would you describe your communication style?", type:"options", opts:["Direct and concise","Thorough and detailed","Warm and empathetic","Persuasive and compelling","Collaborative — I ask lots of questions","Varied depending on the audience"], dim:"comms_style"},
+  {cat:"🧠 Personality", text:"How competitive are you?", type:"scale", lo:"Not competitive at all", hi:"Highly competitive", dim:"competitive"},
+  {cat:"🧠 Personality", text:"How much do you enjoy learning new skills continuously?", type:"scale", lo:"Prefer to master one thing", hi:"Love continuous learning", dim:"learning"},
+  {cat:"🧠 Personality", text:"How comfortable are you with ambiguity and unclear expectations?", type:"scale", lo:"Very uncomfortable — I need clarity", hi:"I love open-ended situations", dim:"ambiguity"},
+  {cat:"🧠 Personality", text:"Do you consider yourself a risk-taker in life generally?", type:"scale", lo:"Very risk-averse", hi:"Very risk-tolerant", dim:"life_risk"},
+  {cat:"🧠 Personality", text:"How strong is your attention to detail?", type:"scale", lo:"Not a strength", hi:"One of my best qualities", dim:"attention_detail"},
+
+  // ENVIRONMENT & CULTURE (75-84)
+  {cat:"🏢 Environment", text:"Which work environment suits you best?", type:"options", opts:["Corporate / enterprise","Startup / fast-growth company","Freelance / self-employed","Nonprofit / public sector","Small business / family business","Academic / research institution"], dim:"org_type"},
+  {cat:"🏢 Environment", text:"How important is prestige — working for a well-known brand or institution?", type:"scale", lo:"Doesn't matter at all", hi:"Very important", dim:"prestige"},
+  {cat:"🏢 Environment", text:"Do you prefer working remotely, in an office, or in the field?", type:"options", opts:["Fully remote — from home or anywhere","Hybrid — best of both worlds","In-office — I like being around people","In the field / traveling / on-site","Outdoors or in different locations daily"], dim:"work_location"},
+  {cat:"🏢 Environment", text:"How much does physical environment (aesthetics, comfort, facilities) affect your productivity?", type:"scale", lo:"Barely at all", hi:"Hugely", dim:"physical_env"},
+  {cat:"🏢 Environment", text:"Do you prefer a hierarchical structure with clear authority, or a flat, autonomous culture?", type:"options", opts:["Clear hierarchy — I like structure","Somewhat hierarchical","In between","Mostly flat","Fully flat — I want full autonomy"], dim:"hierarchy"},
+  {cat:"🏢 Environment", text:"How important is having a clear title and defined career progression?", type:"scale", lo:"Not important", hi:"Very important", dim:"career_progression"},
+  {cat:"🏢 Environment", text:"How much does company culture (mission, vibes, team personality) affect your satisfaction?", type:"scale", lo:"It's minor", hi:"It's everything", dim:"culture_weight"},
+  {cat:"🏢 Environment", text:"Do you prefer working on many short projects or few long multi-year projects?", type:"options", opts:["Many short fast projects","Mostly shorter projects","Mix of both","Mostly longer projects","Long deep projects I can really own"], dim:"project_length"},
+  {cat:"🏢 Environment", text:"How important is recognition — public acknowledgment of your work?", type:"scale", lo:"Not important", hi:"Very important", dim:"recognition"},
+  {cat:"🏢 Environment", text:"Would you thrive in a highly regulated environment (law, medicine, compliance) with lots of rules?", type:"options", opts:["Yes — I respect structure and rigor","Probably fine","Neutral","I'd find it limiting","No — I need freedom to experiment"], dim:"regulation"},
+
+  // LIFE STAGE & GOALS (85-92)
+  {cat:"🎯 Goals", text:"Where are you in your career?", type:"options", opts:["Just starting out (0-2 years)","Early stage (2-5 years)","Mid-career (5-15 years)","Senior (15+ years)","Returning after a break"], dim:"career_stage"},
+  {cat:"🎯 Goals", text:"What's your primary motivation for a career change?", type:"options", opts:["More money","More fulfillment and meaning","Better work-life balance","A completely new challenge","To build something of my own","Personal growth and learning"], dim:"change_motivation"},
+  {cat:"🎯 Goals", text:"Are you willing to go back to school or get new certifications for a career change?", type:"options", opts:["Yes — fully committed","Yes, for the right opportunity","Maybe, if it was manageable","Reluctantly if absolutely required","No — I want to leverage what I have"], dim:"education_willingness"},
+  {cat:"🎯 Goals", text:"How soon do you want to make the career change?", type:"options", opts:["As soon as possible","Within 6 months","Within a year","In 1-3 years","I'm exploring — no timeline"], dim:"timeline"},
+  {cat:"🎯 Goals", text:"How important is job title and career prestige to your personal identity?", type:"scale", lo:"Not at all", hi:"Very important", dim:"identity_career"},
+  {cat:"🎯 Goals", text:"Do you want to eventually become an executive, senior leader, or founder?", type:"options", opts:["Yes — that's the goal","Eventually, maybe","Open to it if it happens naturally","Probably not","No — I want to stay technical or independent"], dim:"exec_ambition"},
+  {cat:"🎯 Goals", text:"How important is job stability vs career excitement and novelty?", type:"scale", lo:"Stability above all", hi:"Excitement above all", dim:"stability_vs_excitement"},
+  {cat:"🎯 Goals", text:"Which matters more to you in the long run?", type:"options", opts:["Being the best at a specific craft","Building a successful business","Having maximum lifestyle flexibility","Making a measurable difference in the world","Being a respected thought leader or expert","Achieving financial independence early"], dim:"ultimate_goal"},
+
+  // SKILLS ASSESSMENT (93-100)
+  {cat:"⚡ Skills Check", text:"Rate your technical / computer skills honestly", type:"scale", lo:"Basic user", hi:"Expert / developer", dim:"tech_skill"},
+  {cat:"⚡ Skills Check", text:"Rate your verbal communication and persuasion skills", type:"scale", lo:"Needs work", hi:"Outstanding", dim:"comm_skill"},
+  {cat:"⚡ Skills Check", text:"Rate your empathy and ability to understand others' feelings", type:"scale", lo:"Not a natural strength", hi:"One of my best traits", dim:"empathy_skill"},
+  {cat:"⚡ Skills Check", text:"Rate your ability to stay organized and manage multiple priorities", type:"scale", lo:"I struggle with this", hi:"Very organized", dim:"org_skill"},
+  {cat:"⚡ Skills Check", text:"Rate your physical stamina, coordination, or manual dexterity", type:"scale", lo:"Below average", hi:"Excellent", dim:"physical_skill"},
+  {cat:"⚡ Skills Check", text:"Rate your creative abilities — art, design, writing, music, etc.", type:"scale", lo:"Not creative", hi:"Very creative", dim:"creative_skill"},
+  {cat:"⚡ Skills Check", text:"Rate your numerical / financial reasoning abilities", type:"scale", lo:"Numbers aren't my thing", hi:"Very strong with numbers", dim:"numerical_skill"},
+  {cat:"⚡ Skills Check", text:"Finally — if you could describe your dream work day in one phrase, which fits best?", type:"options", opts:["Building something with my hands or on a screen","Helping someone solve a real problem","Leading a team toward a big goal","Researching, writing, or thinking deeply","Closing a deal or making something happen","Creating something beautiful or original","Optimizing systems and making things more efficient","Caring for others' health or wellbeing"], dim:"dream_day"},
+];
+
+let currentQ = 0;
+let answers = {};
+
+function renderQuestion() {
+  const q = questions[currentQ];
+  document.getElementById('cat-tag').textContent = q.cat;
+  document.getElementById('q-num').textContent = `Question ${currentQ + 1}`;
+  document.getElementById('q-text').textContent = q.text;
+  document.getElementById('q-counter').textContent = `Question ${currentQ + 1} of ${questions.length}`;
+  const pct = Math.round(((currentQ) / questions.length) * 100);
+  document.getElementById('q-percent').textContent = pct + '%';
+  document.getElementById('progress-bar').style.width = Math.max(1, pct) + '%';
+
+  const area = document.getElementById('answer-area');
+  const saved = answers[currentQ];
+
+  if (q.type === 'scale') {
+    const vals = [1,2,3,4,5,6,7,8,9,10];
+    area.innerHTML = `
+      <div class="scale-wrap">
+        <div class="scale-labels"><span>${q.lo}</span><span>${q.hi}</span></div>
+        <div class="scale-buttons">${vals.map(v => `<button class="scale-btn${saved==v?' selected':''}" onclick="selectScale(${v},this)">${v}</button>`).join('')}</div>
+      </div>`;
+  } else {
+    const letters = ['A','B','C','D','E','F','G','H'];
+    area.innerHTML = `<div class="options">${q.opts.map((o,i) => `
+      <button class="option${saved===i?' selected':''}" onclick="selectOption(${i},this)">
+        <span class="option-letter">${letters[i]}</span>
+        <span>${o}</span>
+      </button>`).join('')}</div>`;
+  }
+
+  document.getElementById('btn-next').disabled = (saved === undefined);
+  document.getElementById('btn-back').disabled = (currentQ === 0);
+
+  // re-animate
+  const card = document.getElementById('question-card');
+  card.style.animation = 'none';
+  card.offsetHeight;
+  card.style.animation = 'fadeUp 0.4s ease both';
+}
+
+function selectScale(val, btn) {
+  document.querySelectorAll('.scale-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  answers[currentQ] = val;
+  document.getElementById('btn-next').disabled = false;
+}
+
+function selectOption(idx, btn) {
+  document.querySelectorAll('.option').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  answers[currentQ] = idx;
+  document.getElementById('btn-next').disabled = false;
+}
+
+function goNext() {
+  if (answers[currentQ] === undefined) return;
+  if (currentQ < questions.length - 1) {
+    currentQ++;
+    renderQuestion();
+  } else {
+    showResults();
+  }
+}
+
+function goBack() {
+  if (currentQ > 0) {
+    currentQ--;
+    renderQuestion();
+  }
+}
+
+// ---- SCORING ----
+function computeTraits() {
+  const a = answers;
+  const traits = {};
+
+  // Helper to get scale answer (1-10) for a question index
+  const scaleQ = (idx) => typeof a[idx] === 'number' ? a[idx] : 5;
+
+  // Helper to get option index for a question
+  const optQ = (idx) => typeof a[idx] === 'number' ? a[idx] : 0;
+
+  // Salary drive (0-10)
+  traits.salaryDrive = (scaleQ(0) + (4-optQ(1))*2.5 + scaleQ(2)) / 3;
+
+  // Purpose / Meaning drive
+  traits.meaningDrive = (scaleQ(20) + scaleQ(29) + (4-optQ(22))*2.5 + scaleQ(23)) / 4;
+
+  // People-orientation
+  traits.peopleOriented = (scaleQ(42) + scaleQ(47) + scaleQ(50) + scaleQ(43)) / 4;
+
+  // Creativity
+  traits.creativity = (scaleQ(36) + scaleQ(6+100) + scaleQ(93+3)) / 3;
+  traits.creativity = (scaleQ(36) + scaleQ(95)) / 2;
+
+  // Analytical
+  traits.analytical = (scaleQ(37) + scaleQ(62) + scaleQ(92)) / 3;
+
+  // Leadership
+  const ld = optQ(48);
+  traits.leadershipDrive = ld<=1 ? 8+ld : ld===2 ? 6 : ld===3 ? 4 : 2;
+
+  // Work-life balance need
+  traits.wlbNeed = (scaleQ(10) + scaleQ(12)) / 2;
+
+  // Risk tolerance
+  traits.riskTolerance = (scaleQ(5) + scaleQ(70)) / 2;
+
+  // Tech orientation
+  traits.techOriented = (scaleQ(40) + scaleQ(92)) / 2;
+
+  // Entrepreneurial
+  const ent = optQ(7);
+  traits.entrepreneurial = ent===0 ? 10 : ent===1 ? 8 : ent===2 ? 6 : ent===3 ? 3 : 1;
+
+  // Empathy
+  traits.empathy = (scaleQ(47) + scaleQ(50) + scaleQ(94)) / 3;
+
+  // Physical / hands-on
+  traits.handsOn = scaleQ(30);
+
+  return traits;
+}
+
+const careers = [
+  {
+    title: "Software Engineer / Developer",
+    desc: "You build digital products, tools, and systems. High demand, strong salaries, remote-friendly, and endlessly creative within structure.",
+    tags: ["$90k–$250k+", "Remote-friendly", "High demand", "Creative-technical"],
+    score: (t) => t.techOriented*1.5 + t.analytical*1.2 + t.riskTolerance*0.3 + (10-t.peopleOriented)*0.5 + t.wlbNeed*0.5
+  },
+  {
+    title: "Product Manager",
+    desc: "You sit at the intersection of technology, business, and people. You set vision, prioritize work, and make high-stakes decisions.",
+    tags: ["$100k–$200k+", "High influence", "Collaborative", "Strategic"],
+    score: (t) => t.leadershipDrive + t.peopleOriented*0.8 + t.analytical*0.8 + t.creativity*0.5 + t.riskTolerance*0.5
+  },
+  {
+    title: "UX / Product Designer",
+    desc: "You make digital experiences intuitive and beautiful. A rare blend of empathy, aesthetics, and systematic thinking.",
+    tags: ["$80k–$160k", "Creative", "People-centered", "Growing field"],
+    score: (t) => t.creativity*1.5 + t.empathy*1.2 + t.analytical*0.5 + t.peopleOriented*0.6
+  },
+  {
+    title: "Therapist / Counselor / Psychologist",
+    desc: "You help individuals navigate emotional and mental health challenges. Deep human impact, flexible settings, meaningful work.",
+    tags: ["$60k–$140k", "High meaning", "1-on-1 impact", "Requires degree"],
+    score: (t) => t.empathy*1.8 + t.meaningDrive*1.2 + t.peopleOriented*1.0 + (10-t.salaryDrive)*0.3
+  },
+  {
+    title: "Data Scientist / Analyst",
+    desc: "You find stories inside numbers. Businesses rely on your insights to make smarter decisions — and pay well for it.",
+    tags: ["$80k–$170k", "High demand", "Remote-friendly", "Technical"],
+    score: (t) => t.analytical*1.8 + t.techOriented*1.0 + (10-t.peopleOriented)*0.5 + t.salaryDrive*0.4
+  },
+  {
+    title: "Healthcare Professional (Nurse, PA, Doctor)",
+    desc: "You provide direct care, diagnose, and treat patients. Unmatched job security, direct impact, clear career paths.",
+    tags: ["$70k–$300k+", "Job security", "Direct impact", "Physical work"],
+    score: (t) => t.empathy*1.2 + t.meaningDrive*1.2 + t.handsOn*0.8 + (10-t.wlbNeed)*0.4 + t.peopleOriented*0.8
+  },
+  {
+    title: "Entrepreneur / Founder",
+    desc: "You build something from nothing. Maximum risk, maximum potential. You need resilience, vision, and a high tolerance for chaos.",
+    tags: ["Variable income", "Full autonomy", "High risk/reward", "All-consuming"],
+    score: (t) => t.entrepreneurial*1.5 + t.riskTolerance*1.2 + t.leadershipDrive*0.8 + t.creativity*0.5 + t.salaryDrive*0.4
+  },
+  {
+    title: "Teacher / Educator",
+    desc: "You shape the next generation. The work is meaningful, social, and intellectually stimulating — though often undercompensated.",
+    tags: ["$45k–$90k", "Meaningful", "Summers off", "Social"],
+    score: (t) => t.meaningDrive*1.0 + t.empathy*1.0 + t.peopleOriented*1.2 + (10-t.salaryDrive)*0.5 + t.wlbNeed*0.6
+  },
+  {
+    title: "Marketing / Brand Strategist",
+    desc: "You understand what makes people tick and use that to build products, campaigns, and brands that resonate.",
+    tags: ["$60k–$150k+", "Creative-strategic", "Versatile", "Fast-paced"],
+    score: (t) => t.creativity*1.2 + t.peopleOriented*0.8 + t.analytical*0.6 + (t.leadershipDrive)*0.5 + t.salaryDrive*0.3
+  },
+  {
+    title: "Financial Analyst / Investment Professional",
+    desc: "You analyze companies, manage risk, and help allocate capital. High earning potential in a demanding, intellectually rigorous field.",
+    tags: ["$80k–$300k+", "High salary", "Analytical", "Competitive"],
+    score: (t) => t.analytical*1.5 + t.salaryDrive*1.2 + (10-t.meaningDrive)*0.3 + (10-t.wlbNeed)*0.5
+  },
+  {
+    title: "Researcher / Academic",
+    desc: "You pursue knowledge for its own sake. Deep focus, intellectual freedom, and the chance to push the boundaries of what's known.",
+    tags: ["$50k–$130k", "Intellectual freedom", "Long timelines", "Specialized"],
+    score: (t) => t.analytical*1.5 + (10-t.peopleOriented)*0.4 + t.meaningDrive*0.7 + (10-t.salaryDrive)*0.4 + (10-t.riskTolerance)*0.3
+  },
+  {
+    title: "Social Worker / Nonprofit Leader",
+    desc: "You work at the frontlines of social change, advocating for vulnerable populations and improving community systems.",
+    tags: ["$40k–$90k", "High meaning", "System change", "Emotionally demanding"],
+    score: (t) => t.meaningDrive*1.5 + t.empathy*1.3 + t.peopleOriented*0.8 + (10-t.salaryDrive)*0.5
+  },
+  {
+    title: "Lawyer / Legal Professional",
+    desc: "You argue, advise, and advocate. Intellectually rigorous, high-status, and financially rewarding — but demanding.",
+    tags: ["$80k–$300k+", "Prestigious", "Analytical", "High stakes"],
+    score: (t) => t.analytical*1.2 + t.salaryDrive*0.8 + t.leadershipDrive*0.5 + (10-t.wlbNeed)*0.5
+  },
+  {
+    title: "Creative Director / Content Creator",
+    desc: "You lead creative vision for brands, media, or your own platform. Increasingly viable as a solo path, especially online.",
+    tags: ["Variable", "High autonomy", "Expressive", "Platform-dependent"],
+    score: (t) => t.creativity*1.8 + (10-t.peopleOriented)*0.3 + t.entrepreneurial*0.5 + t.riskTolerance*0.4
+  },
+  {
+    title: "Operations / Supply Chain Manager",
+    desc: "You make complex systems work efficiently. The backbone of every organization — underappreciated and increasingly well-paid.",
+    tags: ["$70k–$150k", "Systematic", "High impact", "Problem-solving"],
+    score: (t) => t.analytical*1.2 + (10-t.creativity)*0.2 + t.leadershipDrive*0.6 + t.salaryDrive*0.4 + (10-t.riskTolerance)*0.3
+  },
+  {
+    title: "Trades (Electrician, Plumber, Engineer)",
+    desc: "You build, fix, and maintain the physical world. High job security, increasingly high wages, and genuine satisfaction in tangible results.",
+    tags: ["$60k–$120k+", "Job security", "Hands-on", "Physical"],
+    score: (t) => t.handsOn*1.8 + (10-t.analytical)*0.2 + t.salaryDrive*0.3 + (10-t.peopleOriented)*0.3
+  },
+];
+
+function showResults() {
+  document.getElementById('test-section').style.display = 'none';
+  document.getElementById('results').style.display = 'block';
+
+  const traits = computeTraits();
+
+  // Clamp to 0-10
+  Object.keys(traits).forEach(k => { traits[k] = Math.max(0, Math.min(10, traits[k])); });
+
+  // Score careers
+  const scored = careers.map(c => ({ ...c, s: Math.max(0, c.score(traits)) }))
+    .sort((a,b) => b.s - a.s);
+
+  const maxS = scored[0].s;
+
+  // Profile traits
+  const profileTraits = [
+    { name: "People-oriented", val: traits.peopleOriented, color: "#7ab8e8" },
+    { name: "Analytical", val: traits.analytical, color: "#e8c97a" },
+    { name: "Creative", val: traits.creativity, color: "#e87ab8" },
+    { name: "Meaning-driven", val: traits.meaningDrive, color: "#7ae8a0" },
+    { name: "Entrepreneurial", val: traits.entrepreneurial, color: "#e8a07a" },
+    { name: "Tech-oriented", val: traits.techOriented, color: "#a07ae8" },
+    { name: "Empathy", val: traits.empathy, color: "#7ae8e0" },
+    { name: "Risk tolerance", val: traits.riskTolerance, color: "#e8e07a" },
+    { name: "Hands-on", val: traits.handsOn, color: "#e8a0a0" },
+    { name: "Salary drive", val: traits.salaryDrive, color: "#b8e87a" },
+  ];
+
+  document.getElementById('profile-traits').innerHTML = `
+    <div class="profile-section">
+      <h3>Your Personality Dimensions</h3>
+      ${profileTraits.map(t => `
+        <div class="trait-row">
+          <span class="trait-name">${t.name}</span>
+          <div class="trait-bar-bg"><div class="trait-bar-fill" style="width:${t.val*10}%;background:${t.color}"></div></div>
+          <span class="trait-val">${Math.round(t.val*10)}%</span>
+        </div>`).join('')}
+    </div>`;
+
+  document.getElementById('career-grid').innerHTML = scored.slice(0,5).map((c,i) => `
+    <div class="career-card">
+      <div class="career-rank">Match #${i+1}</div>
+      <div class="career-title">${c.title}</div>
+      <div class="career-score-bar"><div class="career-score-fill" style="width:${Math.round((c.s/maxS)*100)}%"></div></div>
+      <div class="career-desc">${c.desc}</div>
+      <div class="career-tags">${c.tags.map(t=>`<span class="career-tag">${t}</span>`).join('')}</div>
+    </div>`).join('');
+
+  // Animate bars after render
+  setTimeout(() => {
+    document.querySelectorAll('.trait-bar-fill, .career-score-fill').forEach(el => {
+      const w = el.style.width;
+      el.style.width = '0%';
+      requestAnimationFrame(() => setTimeout(() => el.style.width = w, 50));
+    });
+  }, 100);
+}
+
+function restart() {
+  answers = {};
+  currentQ = 0;
+  document.getElementById('results').style.display = 'none';
+  document.getElementById('test-section').style.display = 'block';
+  renderQuestion();
+}
+
+// Init
+renderQuestion();
+</script>
+</body>
+</html>
